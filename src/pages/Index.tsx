@@ -18,7 +18,7 @@ const Index = () => {
       case "map":
         return <MapView />;
       case "prepare":
-        return <PrepareView />;
+        return <PrepareView onTabChange={setActiveTab} />;
       case "report":
         return <ReportView />;
       default:
