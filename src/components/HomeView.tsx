@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import RiskBadge, { RiskLevel } from "./RiskBadge";
-import { CloudRain, Wind, Thermometer, Droplets } from "lucide-react";
+import { CloudRain, Wind, Thermometer, Droplets, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,10 @@ const HomeView = ({ onTabChange }: HomeViewProps) => {
   // Simulated current risk level
   const currentRisk: RiskLevel = "alert";
 
+  // Location state
+  const [location, setLocation] = useState<string>("Obteniendo ubicación...");
+  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+
   const weatherData = [
     { icon: CloudRain, label: "Precipitación", value: "65%", color: "text-primary" },
     { icon: Wind, label: "Viento", value: "15 km/h", color: "text-muted-foreground" },
@@ -18,12 +23,73 @@ const HomeView = ({ onTabChange }: HomeViewProps) => {
     { icon: Droplets, label: "Humedad", value: "82%", color: "text-primary" }
   ];
 
+  // Get user's location on component mount
+  useEffect(() => {
+    const getLocation = async () => {
+      if (!navigator.geolocation) {
+        setLocation("Cali, Valle del Cauca");
+        setIsLoadingLocation(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          try {
+            // Use OpenStreetMap Nominatim for reverse geocoding (free, no API key needed)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=es`
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const address = data.address;
+
+              // Try to get city and state/department
+              const city = address.city || address.town || address.village || address.municipality || "Ubicación";
+              const state = address.state || address.region || "";
+
+              setLocation(state ? `${city}, ${state}` : city);
+            } else {
+              setLocation("Cali, Valle del Cauca");
+            }
+          } catch (error) {
+            console.error("Error al obtener la ubicación:", error);
+            setLocation("Cali, Valle del Cauca");
+          } finally {
+            setIsLoadingLocation(false);
+          }
+        },
+        (error) => {
+          console.error("Error de geolocalización:", error);
+          setLocation("Cali, Valle del Cauca");
+          setIsLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000 // Cache for 5 minutes
+        }
+      );
+    };
+
+    getLocation();
+  }, []);
+
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary to-accent p-6 rounded-b-3xl text-primary-foreground">
         <h1 className="text-2xl font-bold mb-2">¡Hola, Comunidad! 👋</h1>
-        <p className="text-sm opacity-90">Medellín, Antioquia</p>
+        <p className="text-sm opacity-90 flex items-center gap-1">
+          <MapPin className="w-4 h-4" />
+          {isLoadingLocation ? (
+            <span className="animate-pulse">Obteniendo ubicación...</span>
+          ) : (
+            location
+          )}
+        </p>
       </div>
 
       {/* Current Risk Status */}
