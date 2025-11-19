@@ -4,7 +4,7 @@
 export const REPORT_RECIPIENTS = [
     'david.cajiao@uao.edu.co',
     'camila_and.cardona@uao.edu.co',
-    //'jmnunez@uao.edu.co'
+    'jmnunez@uao.edu.co',
     // Add more emails here:
     // 'admin@example.com',
     // 'alerts@example.com',
