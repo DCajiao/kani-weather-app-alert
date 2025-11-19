@@ -357,9 +357,9 @@ const MapView = () => {
               <div className="text-2xl">👮</div>
               <div className="flex-1">
                 <p className="font-semibold text-sm">CAI Móvil de Policía Bochalema</p>
-                <p className="text-xs text-muted-foreground">1.2 km • Evitar en lluvia</p>
+                <p className="text-xs text-muted-foreground">1.2 km • Abierto 24h</p>
               </div>
-              <RiskBadge level="danger" size="sm" />
+              <RiskBadge level="safe" size="sm" />
             </div>
           </Card>
         </div>
