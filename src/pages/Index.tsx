@@ -12,7 +12,7 @@ const Index = () => {
   const renderView = () => {
     switch (activeTab) {
       case "home":
-        return <HomeView />;
+        return <HomeView onTabChange={setActiveTab} />;
       case "alerts":
         return <AlertsView />;
       case "map":
@@ -22,7 +22,7 @@ const Index = () => {
       case "report":
         return <ReportView />;
       default:
-        return <HomeView />;
+        return <HomeView onTabChange={setActiveTab} />;
     }
   };
 

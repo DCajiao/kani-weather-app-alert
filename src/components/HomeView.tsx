@@ -3,10 +3,14 @@ import { CloudRain, Wind, Thermometer, Droplets } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const HomeView = () => {
+interface HomeViewProps {
+  onTabChange: (tab: string) => void;
+}
+
+const HomeView = ({ onTabChange }: HomeViewProps) => {
   // Simulated current risk level
   const currentRisk: RiskLevel = "alert";
-  
+
   const weatherData = [
     { icon: CloudRain, label: "Precipitación", value: "65%", color: "text-primary" },
     { icon: Wind, label: "Viento", value: "15 km/h", color: "text-muted-foreground" },
@@ -65,7 +69,8 @@ const HomeView = () => {
       <div className="px-6">
         <h3 className="text-lg font-semibold mb-4">Acciones Rápidas</h3>
         <div className="space-y-3">
-          <Button 
+          <Button
+            onClick={() => onTabChange("alerts")}
             className="w-full justify-start h-auto py-4 px-5 bg-danger hover:bg-danger/90 text-danger-foreground rounded-2xl shadow-lg"
           >
             <span className="text-2xl mr-3">🚨</span>
@@ -74,8 +79,9 @@ const HomeView = () => {
               <p className="text-xs opacity-90">2 alertas en tu zona</p>
             </div>
           </Button>
-          
-          <Button 
+
+          <Button
+            onClick={() => onTabChange("prepare")}
             className="w-full justify-start h-auto py-4 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg"
           >
             <span className="text-2xl mr-3">🎒</span>
@@ -84,8 +90,9 @@ const HomeView = () => {
               <p className="text-xs opacity-90">Prepárate con anticipación</p>
             </div>
           </Button>
-          
-          <Button 
+
+          <Button
+            onClick={() => onTabChange("map")}
             className="w-full justify-start h-auto py-4 px-5 bg-safe hover:bg-safe/90 text-safe-foreground rounded-2xl shadow-lg"
           >
             <span className="text-2xl mr-3">📍</span>
