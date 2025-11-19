@@ -32,7 +32,7 @@ export const sendReportToMultipleEmails = async (data: EmailData): Promise<boole
     try {
         const promises = data.recipients.map(async (email) => {
             const formData = new FormData();
-            formData.append('_subject', `Kani Weather - 📣 Nuevo Reporte: ${data.reportType}`);
+            formData.append('_subject', `Kani Weather Alert - 📣 Nuevo Reporte: ${data.reportType}`);
             formData.append('_captcha', 'false');
             formData.append('Tipo de evento', data.reportType);
             formData.append('Ubicación', data.location);
