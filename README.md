@@ -93,6 +93,8 @@ npm install
 npm run dev
 ```
 
+If you want to learn more about how the code works or see more comprehensive documentation, you can check out this [tool](https://deepwiki.com/DCajiao/kani-weather-app-alert). 
+
 # Authors / Maintainers
 - Researcher: [Camila Cardona](https://www.github.com/Camiau20)
 - Developer: [David Cajiao](https://www.github.com/DCajiao)
