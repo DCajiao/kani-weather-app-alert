@@ -19,11 +19,14 @@ export interface EmailData {
     timestamp: string;
     hasPhoto: boolean;
     hasAudio: boolean;
+    photoFile?: File | null;
+    audioFile?: File | null;
 }
 
 /**
  * Send report email to multiple recipients using FormSubmit.co
  * Note: FormSubmit.co sends to one email at a time, so we send multiple requests
+ * Supports file attachments (photo and audio)
  */
 export const sendReportToMultipleEmails = async (data: EmailData): Promise<boolean> => {
     try {
@@ -36,8 +39,16 @@ export const sendReportToMultipleEmails = async (data: EmailData): Promise<boole
             formData.append('Descripción', data.description || 'Sin descripción');
             formData.append('Coordenadas', data.coordinates);
             formData.append('Fecha y hora', data.timestamp);
-            formData.append('Incluye foto', data.hasPhoto ? 'Sí' : 'No');
-            formData.append('Incluye audio', data.hasAudio ? 'Sí' : 'No');
+
+            // Attach photo if available
+            if (data.photoFile) {
+                formData.append('_attachment', data.photoFile, data.photoFile.name);
+            }
+
+            // Attach audio if available
+            if (data.audioFile) {
+                formData.append('_attachment', data.audioFile, data.audioFile.name);
+            }
 
             const response = await fetch(`https://formsubmit.co/${email}`, {
                 method: 'POST',

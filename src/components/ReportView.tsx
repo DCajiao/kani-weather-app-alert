@@ -166,7 +166,9 @@ const ReportView = () => {
         coordinates: coordinates ? `${coordinates.lat}, ${coordinates.lon}` : 'No disponible',
         timestamp: new Date(report.timestamp).toLocaleString('es-ES'),
         hasPhoto: !!photoFile,
-        hasAudio: !!audioFile
+        hasAudio: !!audioFile,
+        photoFile: photoFile,
+        audioFile: audioFile
       });
     } catch (error) {
       console.error("Error sending email:", error);
@@ -257,8 +259,8 @@ const ReportView = () => {
               key={type.id}
               onClick={() => setSelectedType(type.id)}
               className={`p-4 rounded-2xl border-2 transition-all ${selectedType === type.id
-                  ? 'border-primary bg-primary text-primary-foreground scale-105'
-                  : 'border-border bg-card hover:border-primary/50'
+                ? 'border-primary bg-primary text-primary-foreground scale-105'
+                : 'border-border bg-card hover:border-primary/50'
                 }`}
             >
               <div className="text-3xl mb-2">{type.icon}</div>
