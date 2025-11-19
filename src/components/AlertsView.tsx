@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RiskBadge, { RiskLevel } from "./RiskBadge";
-import { Clock, MapPin, Volume2 } from "lucide-react";
+import { Clock, MapPin, Volume2, VolumeX } from "lucide-react";
 
 interface Alert {
   id: string;
@@ -14,6 +15,8 @@ interface Alert {
 }
 
 const AlertsView = () => {
+  const [speakingAlertId, setSpeakingAlertId] = useState<string | null>(null);
+
   const alerts: Alert[] = [
     {
       id: "1",
@@ -44,9 +47,60 @@ const AlertsView = () => {
     }
   ];
 
-  const playAlert = () => {
-    // Placeholder for audio playback
-    console.log("Playing alert audio narration");
+  const playAlert = (alert: Alert) => {
+    // Check if browser supports Speech Synthesis
+    if (!('speechSynthesis' in window)) {
+      console.error("Tu navegador no soporta síntesis de voz");
+      alert("Tu navegador no soporta la función de lectura de texto");
+      return;
+    }
+
+    // If already speaking this alert, stop it
+    if (speakingAlertId === alert.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingAlertId(null);
+      return;
+    }
+
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+
+    // Create the text to be spoken
+    const textToSpeak = `Alerta: ${alert.title}. ${alert.description}. Ubicación: ${alert.location}. ${alert.time}.`;
+
+    // Create a new speech synthesis utterance
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+    // Configure the utterance
+    utterance.lang = 'es-ES'; // Spanish language
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1.0; // Normal pitch
+    utterance.volume = 1.0; // Full volume
+
+    // Set up event handlers
+    utterance.onstart = () => {
+      setSpeakingAlertId(alert.id);
+    };
+
+    utterance.onend = () => {
+      setSpeakingAlertId(null);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Error en la síntesis de voz:", event);
+      setSpeakingAlertId(null);
+    };
+
+    // Speak the text
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Stop speech when component unmounts
+  const stopAllSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingAlertId(null);
+    }
   };
 
   return (
@@ -68,11 +122,11 @@ const AlertsView = () => {
                   <h3 className="font-semibold text-lg leading-tight">{alert.title}</h3>
                   <RiskBadge level={alert.level} size="sm" />
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {alert.description}
                 </p>
-                
+
                 <div className="space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
@@ -85,21 +139,23 @@ const AlertsView = () => {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant={speakingAlertId === alert.id ? "destructive" : "default"}
+                    size="sm"
                     className="flex-1 rounded-xl"
-                    onClick={playAlert}
+                    onClick={() => playAlert(alert)}
                   >
-                    <Volume2 className="w-4 h-4 mr-2" />
-                    Escuchar
-                  </Button>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="flex-1 rounded-xl"
-                  >
-                    Ver detalles
+                    {speakingAlertId === alert.id ? (
+                      <>
+                        <VolumeX className="w-4 h-4 mr-2" />
+                        Detener
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-4 h-4 mr-2" />
+                        Escuchar
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
