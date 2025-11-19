@@ -1,16 +1,18 @@
 import { cn } from "@/lib/utils";
 
-export type RiskLevel = "safe" | "alert" | "danger";
+export type RiskLevel = "safe" | "warning" | "alert" | "danger";
 
 interface RiskBadgeProps {
   level: RiskLevel;
   label?: string;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-const RiskBadge = ({ level, label, size = "md" }: RiskBadgeProps) => {
+const RiskBadge = ({ level, label, size = "md", className }: RiskBadgeProps) => {
   const labels = {
     safe: label || "Seguro",
+    warning: label || "Precaución",
     alert: label || "Alerta",
     danger: label || "Peligro"
   };
@@ -26,9 +28,11 @@ const RiskBadge = ({ level, label, size = "md" }: RiskBadgeProps) => {
       className={cn(
         "inline-flex items-center gap-2 rounded-full font-semibold",
         level === "safe" && "bg-safe text-safe-foreground",
+        level === "warning" && "bg-warning text-warning-foreground",
         level === "alert" && "bg-alert text-alert-foreground",
         level === "danger" && "bg-danger text-danger-foreground",
-        sizeClasses[size]
+        sizeClasses[size],
+        className
       )}
     >
       <div className="w-2 h-2 rounded-full bg-current animate-pulse" />

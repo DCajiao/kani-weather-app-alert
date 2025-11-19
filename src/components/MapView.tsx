@@ -259,7 +259,7 @@ const MapView = () => {
               {/* OpenStreetMap iframe */}
               <iframe
                 src={getStaticMapUrl()}
-                className="w-full h-full border-0"
+                className="w-full h-full border-0 pointer-events-none"
                 title="Mapa de ubicación"
               />
 
