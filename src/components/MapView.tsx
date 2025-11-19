@@ -111,7 +111,7 @@ const MapView = () => {
       <div className="px-6">
         <Card className="p-4 bg-muted border-none">
           <p className="text-xs text-muted-foreground text-center">
-            Datos actualizados hace 10 minutos • Fuente: IDEAM, NASA
+            Datos actualizados hace 10 minutos • Fuente: Open Meteo
           </p>
         </Card>
       </div>
