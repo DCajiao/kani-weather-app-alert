@@ -256,14 +256,27 @@ const AlertsView = () => {
     alerts.sort((a, b) => {
       const getHours = (timeStr: string): number => {
         if (timeStr === "Ahora") return 0;
-        const match = timeStr.match(/En (\d+)d? (\d+)?h?/);
-        if (match) {
-          const days = match[1] ? parseInt(match[1]) : 0;
-          const hours = match[2] ? parseInt(match[2]) : 0;
+
+        // Match "En Xd Yh" format (e.g., "En 4d 3h")
+        const daysHoursMatch = timeStr.match(/En (\d+)d (\d+)h/);
+        if (daysHoursMatch) {
+          const days = parseInt(daysHoursMatch[1]);
+          const hours = parseInt(daysHoursMatch[2]);
           return days * 24 + hours;
         }
+
+        // Match "En X día(s)" format (e.g., "En 2 días" or "En 1 día")
+        const daysMatch = timeStr.match(/En (\d+) día/);
+        if (daysMatch) {
+          return parseInt(daysMatch[1]) * 24;
+        }
+
+        // Match "En X hora(s)" format (e.g., "En 5 horas" or "En 1 hora")
         const hoursMatch = timeStr.match(/En (\d+) hora/);
-        if (hoursMatch) return parseInt(hoursMatch[1]);
+        if (hoursMatch) {
+          return parseInt(hoursMatch[1]);
+        }
+
         return 0;
       };
       return getHours(a.time) - getHours(b.time);
