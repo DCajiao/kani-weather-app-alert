@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
-import { CheckCircle2, Circle, Volume2 } from "lucide-react";
+import { CheckCircle2, Circle, Volume2, VolumeX } from "lucide-react";
 
 interface ChecklistItem {
   id: string;
@@ -11,7 +11,11 @@ interface ChecklistItem {
   completed: boolean;
 }
 
-const PrepareView = () => {
+interface PrepareViewProps {
+  onTabChange: (tab: string) => void;
+}
+
+const PrepareView = ({ onTabChange }: PrepareViewProps) => {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
     { id: "1", icon: "💧", label: "Agua potable (3 litros por persona)", completed: false },
     { id: "2", icon: "🍞", label: "Alimentos no perecederos", completed: false },
@@ -25,9 +29,11 @@ const PrepareView = () => {
     { id: "10", icon: "💰", label: "Dinero en efectivo", completed: false },
   ]);
 
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+
   const toggleItem = (id: string) => {
-    setChecklist(prev => 
-      prev.map(item => 
+    setChecklist(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, completed: !item.completed } : item
       )
     );
@@ -35,6 +41,76 @@ const PrepareView = () => {
 
   const completedCount = checklist.filter(item => item.completed).length;
   const progress = (completedCount / checklist.length) * 100;
+
+  // Audio guide function
+  const playAudioGuide = () => {
+    // Check if browser supports Speech Synthesis
+    if (!('speechSynthesis' in window)) {
+      alert("Tu navegador no soporta la función de lectura de texto");
+      return;
+    }
+
+    // If already speaking, stop it
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+
+    // Build the audio guide text
+    let guideText = `Guía de audio para tu kit de emergencia. `;
+    guideText += `Has completado ${completedCount} de ${checklist.length} elementos. `;
+
+    if (progress === 100) {
+      guideText += `¡Excelente! Tu kit está completo. `;
+    } else {
+      guideText += `Faltan ${checklist.length - completedCount} elementos por preparar. `;
+    }
+
+    guideText += `A continuación, la lista de elementos: `;
+
+    // Add each item with its status
+    checklist.forEach((item, index) => {
+      guideText += `${index + 1}. ${item.label}. `;
+      if (item.completed) {
+        guideText += `Completado. `;
+      } else {
+        guideText += `Pendiente. `;
+      }
+    });
+
+    guideText += `Recuerda revisar y renovar los elementos de tu kit cada 6 meses. `;
+    guideText += `Mantente preparado ante cualquier emergencia.`;
+
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(guideText);
+
+    // Configure the utterance
+    utterance.lang = 'es-ES';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    // Set up event handlers
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Error en la síntesis de voz:", event);
+      setIsSpeaking(false);
+    };
+
+    // Speak the text
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -52,14 +128,14 @@ const PrepareView = () => {
             <span className="text-2xl font-bold">{completedCount}/{checklist.length}</span>
           </div>
           <div className="w-full h-3 bg-primary-foreground/30 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-primary-foreground transition-all duration-500 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
           <p className="text-sm mt-3 opacity-90">
-            {progress === 100 
-              ? "¡Excelente! Tu kit está completo" 
+            {progress === 100
+              ? "¡Excelente! Tu kit está completo"
               : `Faltan ${checklist.length - completedCount} elementos`
             }
           </p>
@@ -69,12 +145,22 @@ const PrepareView = () => {
       {/* Action Buttons */}
       <div className="px-6">
         <div className="flex gap-3">
-          <Button 
-            variant="default" 
+          <Button
+            variant={isSpeaking ? "destructive" : "default"}
             className="flex-1 rounded-xl"
+            onClick={playAudioGuide}
           >
-            <Volume2 className="w-4 h-4 mr-2" />
-            Audio guía
+            {isSpeaking ? (
+              <>
+                <VolumeX className="w-4 h-4 mr-2" />
+                Detener guía
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4 mr-2" />
+                Audio guía
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -85,7 +171,7 @@ const PrepareView = () => {
         <Card className="p-5 border-none shadow-lg">
           <div className="space-y-4">
             {checklist.map((item) => (
-              <div 
+              <div
                 key={item.id}
                 className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors cursor-pointer"
                 onClick={() => toggleItem(item.id)}
@@ -165,7 +251,12 @@ const PrepareView = () => {
           <p className="text-sm opacity-90 mb-3">
             En caso de emergencia, sigue las rutas marcadas hacia zonas seguras en terreno elevado.
           </p>
-          <Button variant="outline" size="sm" className="w-full rounded-xl border-alert-foreground text-alert-foreground hover:bg-alert-foreground hover:text-alert">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full rounded-xl border-alert-foreground text-alert-foreground hover:bg-alert-foreground hover:text-alert"
+            onClick={() => onTabChange("map")}
+          >
             Ver mapa de rutas
           </Button>
         </Card>
