@@ -154,32 +154,30 @@ const ReportView = () => {
     setAudioPreview(null);
   };
 
-  // Send email using EmailJS
+  // Send email automatically using FormSubmit.co
   const sendEmailReport = async (report: Report) => {
     try {
-      // Using EmailJS free tier (200 emails/month)
-      // You need to sign up at https://www.emailjs.com/ and get your credentials
-      // For now, we'll use a mailto link as a fallback
+      const formData = new FormData();
+      formData.append('_subject', `Nuevo Reporte: ${report.typeLabel}`);
+      formData.append('_captcha', 'false'); // Disable captcha for automatic sending
+      formData.append('Tipo de evento', report.typeLabel);
+      formData.append('Ubicación', report.location);
+      formData.append('Descripción', report.description || 'Sin descripción');
+      formData.append('Coordenadas', coordinates ? `${coordinates.lat}, ${coordinates.lon}` : 'No disponible');
+      formData.append('Fecha y hora', new Date(report.timestamp).toLocaleString('es-ES'));
+      formData.append('Incluye foto', photoFile ? 'Sí' : 'No');
+      formData.append('Incluye audio', audioFile ? 'Sí' : 'No');
 
-      const subject = `Nuevo Reporte: ${report.typeLabel}`;
-      const body = `
-Tipo de evento: ${report.typeLabel}
-Ubicación: ${report.location}
-Descripción: ${report.description || 'Sin descripción'}
-Fecha: ${new Date(report.timestamp).toLocaleString('es-ES')}
-${coordinates ? `Coordenadas: ${coordinates.lat}, ${coordinates.lon}` : ''}
+      // FormSubmit.co endpoint - sends to david.cajiao@uao.edu.co automatically
+      const response = await fetch('https://formsubmit.co/david.cajiao@uao.edu.co', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
 
-${photoFile ? 'Incluye foto adjunta' : ''}
-${audioFile ? 'Incluye audio adjunto' : ''}
-      `.trim();
-
-      // Create mailto link
-      const mailtoLink = `mailto:david.cajiao@uao.edu.co?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-      // Open email client
-      window.location.href = mailtoLink;
-
-      return true;
+      return response.ok;
     } catch (error) {
       console.error("Error sending email:", error);
       return false;
@@ -210,12 +208,12 @@ ${audioFile ? 'Incluye audio adjunto' : ''}
     // Update reports list
     setReports(reportsDB.getRecent());
 
-    // Send email
+    // Send email automatically
     toast.promise(
       sendEmailReport(newReport),
       {
-        loading: 'Preparando reporte...',
-        success: 'Reporte enviado exitosamente. Se abrirá tu cliente de correo.',
+        loading: 'Enviando reporte...',
+        success: 'Reporte enviado exitosamente por correo electrónico',
         error: 'Error al enviar el reporte'
       }
     );
