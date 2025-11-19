@@ -278,7 +278,7 @@ const HomeView = ({ onTabChange }: HomeViewProps) => {
             <span className="text-2xl mr-3">🚨</span>
             <div className="text-left">
               <p className="font-semibold">Ver Alertas Activas</p>
-              <p className="text-xs opacity-90">2 alertas en tu zona</p>
+              <p className="text-xs opacity-90">Alertas en tu zona</p>
             </div>
           </Button>
 
