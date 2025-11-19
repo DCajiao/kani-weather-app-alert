@@ -70,17 +70,11 @@ const PrepareView = () => {
       <div className="px-6">
         <div className="flex gap-3">
           <Button 
-            variant="outline" 
+            variant="default" 
             className="flex-1 rounded-xl"
           >
             <Volume2 className="w-4 h-4 mr-2" />
             Audio guía
-          </Button>
-          <Button 
-            variant="default" 
-            className="flex-1 rounded-xl"
-          >
-            Ver tutorial
           </Button>
         </div>
       </div>
