@@ -334,8 +334,8 @@ const MapView = () => {
             <div className="flex items-center gap-3">
               <div className="text-2xl">🏥</div>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Centro de Salud La Floresta</p>
-                <p className="text-xs text-muted-foreground">0.8 km • Abierto 24h</p>
+                <p className="font-semibold text-sm">Centro Medico Colsanitas Ciudad Jardin</p>
+                <p className="text-xs text-muted-foreground">2.1 km • Abierto 24h</p>
               </div>
               <RiskBadge level="safe" size="sm" />
             </div>
@@ -343,10 +343,10 @@ const MapView = () => {
 
           <Card className="p-4 border-none shadow-md">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">🏫</div>
+              <div className="text-2xl">🏥</div>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Refugio Temporal - Escuela</p>
-                <p className="text-xs text-muted-foreground">1.2 km • Capacidad: 200</p>
+                <p className="font-semibold text-sm">Urgencias Fundación Valle del Lili</p>
+                <p className="text-xs text-muted-foreground">2.5 km • Abierto 24h</p>
               </div>
               <RiskBadge level="safe" size="sm" />
             </div>
@@ -354,10 +354,10 @@ const MapView = () => {
 
           <Card className="p-4 border-none shadow-md">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">⚠️</div>
+              <div className="text-2xl">👮</div>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Zona de Riesgo - Quebrada</p>
-                <p className="text-xs text-muted-foreground">0.5 km • Evitar en lluvia</p>
+                <p className="font-semibold text-sm">CAI Móvil de Policía Bochalema</p>
+                <p className="text-xs text-muted-foreground">1.2 km • Evitar en lluvia</p>
               </div>
               <RiskBadge level="danger" size="sm" />
             </div>
