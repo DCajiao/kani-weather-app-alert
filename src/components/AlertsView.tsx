@@ -105,6 +105,10 @@ const AlertsView = () => {
     const alerts: Alert[] = [];
     const now = new Date();
     const hourly = data.hourly;
+    let alertIdCounter = 0;
+
+    // Track processed time windows to avoid too many similar alerts
+    const processedWindows: Set<string> = new Set();
 
     // Analyze next 7 days
     for (let i = 0; i < hourly.time.length; i++) {
@@ -119,40 +123,54 @@ const AlertsView = () => {
       const weatherCode = hourly.weather_code[i];
       const temp = hourly.temperature_2m[i];
 
+      // Calculate which day this is (0-6 for 7 days)
+      const dayNumber = Math.floor(hoursFromNow / 24);
+
+      // Format time display
+      const getTimeDisplay = (hours: number): string => {
+        if (hours < 24) return `En ${hours} hora${hours !== 1 ? 's' : ''}`;
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        if (remainingHours === 0) return `En ${days} día${days !== 1 ? 's' : ''}`;
+        return `En ${days}d ${remainingHours}h`;
+      };
+
       // Check for heavy rain alert
-      if (precipitation > 5 && precipProb > 70 && hoursFromNow <= 168) {
-        const existing = alerts.find(a => a.id === "heavy-rain");
-        if (!existing) {
+      if (precipitation > 5 && precipProb > 70) {
+        const windowKey = `heavy-rain-day-${dayNumber}`;
+        if (!processedWindows.has(windowKey)) {
+          processedWindows.add(windowKey);
           alerts.push({
-            id: "heavy-rain",
+            id: `heavy-rain-${alertIdCounter++}`,
             title: "Lluvias Intensas Esperadas",
-            description: `Se esperan precipitaciones de ${precipitation.toFixed(1)}mm con ${precipProb}% de probabilidad en las próximas ${hoursFromNow} horas. Riesgo de inundaciones en zonas bajas.`,
+            description: `Se esperan precipitaciones de ${precipitation.toFixed(1)}mm con ${precipProb}% de probabilidad. Riesgo de inundaciones en zonas bajas.`,
             level: precipitation > 10 ? "danger" : "alert",
             location: location,
-            time: `En ${hoursFromNow} hora${hoursFromNow !== 1 ? 's' : ''}`,
+            time: getTimeDisplay(hoursFromNow),
             icon: "🌧️"
           });
         }
       }
 
       // Check for storm alert (weather code 95-99)
-      if (weatherCode >= 95 && hoursFromNow <= 168) {
-        const existing = alerts.find(a => a.id === "storm");
-        if (!existing) {
+      if (weatherCode >= 95) {
+        const windowKey = `storm-day-${dayNumber}`;
+        if (!processedWindows.has(windowKey)) {
+          processedWindows.add(windowKey);
           alerts.push({
-            id: "storm",
+            id: `storm-${alertIdCounter++}`,
             title: "Alerta de Tormenta",
-            description: `Se pronostica tormenta eléctrica en las próximas ${hoursFromNow} horas. Busque refugio seguro y evite espacios abiertos.`,
+            description: `Se pronostica tormenta eléctrica. Busque refugio seguro y evite espacios abiertos.`,
             level: "danger",
             location: location,
-            time: `En ${hoursFromNow} hora${hoursFromNow !== 1 ? 's' : ''}`,
+            time: getTimeDisplay(hoursFromNow),
             icon: "⛈️"
           });
         }
       }
 
-      // Check for continuous rain (multiple hours)
-      if (i < hourly.time.length - 6) {
+      // Check for continuous rain (multiple hours) - check every 12 hours
+      if (i < hourly.time.length - 6 && i % 12 === 0) {
         let continuousRainHours = 0;
         let totalRain = 0;
         for (let j = i; j < i + 6 && j < hourly.time.length; j++) {
@@ -162,16 +180,17 @@ const AlertsView = () => {
           }
         }
 
-        if (continuousRainHours >= 4 && totalRain > 15 && hoursFromNow <= 168) {
-          const existing = alerts.find(a => a.id === "flooding-risk");
-          if (!existing) {
+        if (continuousRainHours >= 4 && totalRain > 15) {
+          const windowKey = `flooding-day-${dayNumber}`;
+          if (!processedWindows.has(windowKey)) {
+            processedWindows.add(windowKey);
             alerts.push({
-              id: "flooding-risk",
+              id: `flooding-risk-${alertIdCounter++}`,
               title: "Riesgo de Inundación",
               description: `Se esperan ${continuousRainHours} horas continuas de lluvia con acumulado de ${totalRain.toFixed(1)}mm. Alto riesgo de inundaciones en zonas bajas y cauces de ríos.`,
               level: "danger",
               location: location,
-              time: `Inicia en ${hoursFromNow} hora${hoursFromNow !== 1 ? 's' : ''}`,
+              time: getTimeDisplay(hoursFromNow),
               icon: "🌊"
             });
           }
@@ -179,40 +198,76 @@ const AlertsView = () => {
       }
 
       // Check for high precipitation probability
-      if (precipProb > 80 && precipitation > 2 && hoursFromNow <= 168) {
-        const existing = alerts.find(a => a.id === "rain-warning");
-        if (!existing && alerts.length < 3) {
+      if (precipProb > 80 && precipitation > 2 && precipitation <= 5) {
+        const windowKey = `rain-warning-day-${dayNumber}`;
+        if (!processedWindows.has(windowKey)) {
+          processedWindows.add(windowKey);
           alerts.push({
-            id: "rain-warning",
+            id: `rain-warning-${alertIdCounter++}`,
             title: "Probabilidad Alta de Lluvia",
-            description: `${precipProb}% de probabilidad de lluvia en las próximas ${hoursFromNow} horas. Se recomienda llevar paraguas y evitar zonas propensas a encharcamientos.`,
+            description: `${precipProb}% de probabilidad de lluvia. Se recomienda llevar paraguas y evitar zonas propensas a encharcamientos.`,
             level: "warning",
             location: location,
-            time: `En ${hoursFromNow} hora${hoursFromNow !== 1 ? 's' : ''}`,
+            time: getTimeDisplay(hoursFromNow),
             icon: "☔"
           });
         }
       }
 
       // Check for extreme temperatures
-      if (temp > 35 && hoursFromNow <= 168) {
-        const existing = alerts.find(a => a.id === "heat-alert");
-        if (!existing && alerts.length < 3) {
+      if (temp > 35) {
+        const windowKey = `heat-day-${dayNumber}`;
+        if (!processedWindows.has(windowKey)) {
+          processedWindows.add(windowKey);
           alerts.push({
-            id: "heat-alert",
+            id: `heat-alert-${alertIdCounter++}`,
             title: "Alerta por Calor Extremo",
             description: `Temperatura de ${temp.toFixed(1)}°C esperada. Manténgase hidratado, evite exposición prolongada al sol y busque lugares frescos.`,
             level: "alert",
             location: location,
-            time: `En ${hoursFromNow} hora${hoursFromNow !== 1 ? 's' : ''}`,
+            time: getTimeDisplay(hoursFromNow),
             icon: "🌡️"
           });
         }
       }
 
-      // Limit to 5 alerts
-      if (alerts.length >= 5) break;
+      // Check for moderate rain (different from heavy rain)
+      if (precipitation > 2 && precipitation <= 5 && precipProb > 60) {
+        const windowKey = `moderate-rain-day-${dayNumber}`;
+        if (!processedWindows.has(windowKey)) {
+          processedWindows.add(windowKey);
+          alerts.push({
+            id: `moderate-rain-${alertIdCounter++}`,
+            title: "Lluvia Moderada",
+            description: `Se esperan ${precipitation.toFixed(1)}mm de lluvia con ${precipProb}% de probabilidad. Condiciones húmedas previstas.`,
+            level: "warning",
+            location: location,
+            time: getTimeDisplay(hoursFromNow),
+            icon: "�️"
+          });
+        }
+      }
+
+      // Limit to 15 alerts to show good coverage of the week
+      if (alerts.length >= 15) break;
     }
+
+    // Sort alerts by time (earliest first)
+    alerts.sort((a, b) => {
+      const getHours = (timeStr: string): number => {
+        if (timeStr === "Ahora") return 0;
+        const match = timeStr.match(/En (\d+)d? (\d+)?h?/);
+        if (match) {
+          const days = match[1] ? parseInt(match[1]) : 0;
+          const hours = match[2] ? parseInt(match[2]) : 0;
+          return days * 24 + hours;
+        }
+        const hoursMatch = timeStr.match(/En (\d+) hora/);
+        if (hoursMatch) return parseInt(hoursMatch[1]);
+        return 0;
+      };
+      return getHours(a.time) - getHours(b.time);
+    });
 
     // If no alerts generated, add a safe status message
     if (alerts.length === 0) {
