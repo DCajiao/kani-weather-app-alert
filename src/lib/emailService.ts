@@ -1,82 +1,62 @@
-import emailjs from '@emailjs/browser';
+// Email configuration for reports
+// Add or remove emails from this array as needed
 
-// EmailJS Configuration
-// Sign up at https://www.emailjs.com/ to get your credentials
-// Free tier: 200 emails/month
-
-const EMAILJS_CONFIG = {
-    serviceId: 'service_kani_weather', // You need to create this in EmailJS dashboard
-    templateId: 'template_report', // You need to create this in EmailJS dashboard
-    publicKey: 'YOUR_PUBLIC_KEY' // Replace with your EmailJS public key
-};
+export const REPORT_RECIPIENTS = [
+    'david.cajiao@uao.edu.co',
+    'camila_and.cardona@uao.edu.co',
+    //'jmnunez@uao.edu.co'
+    // Add more emails here:
+    // 'admin@example.com',
+    // 'alerts@example.com',
+];
 
 export interface EmailData {
-    to_email: string;
-    report_type: string;
+    recipients: string[];
+    reportType: string;
     location: string;
     description: string;
     coordinates: string;
     timestamp: string;
-    has_photo: string;
-    has_audio: string;
+    hasPhoto: boolean;
+    hasAudio: boolean;
 }
 
-export const sendReportEmail = async (data: EmailData): Promise<boolean> => {
+/**
+ * Send report email to multiple recipients using FormSubmit.co
+ * Note: FormSubmit.co sends to one email at a time, so we send multiple requests
+ */
+export const sendReportToMultipleEmails = async (data: EmailData): Promise<boolean> => {
     try {
-        // For development/demo purposes, we'll use a simple fetch to a free email service
-        // In production, you should set up EmailJS properly with your credentials
+        const promises = data.recipients.map(async (email) => {
+            const formData = new FormData();
+            formData.append('_subject', `Kani Weather - 📣 Nuevo Reporte: ${data.reportType}`);
+            formData.append('_captcha', 'false');
+            formData.append('Tipo de evento', data.reportType);
+            formData.append('Ubicación', data.location);
+            formData.append('Descripción', data.description || 'Sin descripción');
+            formData.append('Coordenadas', data.coordinates);
+            formData.append('Fecha y hora', data.timestamp);
+            formData.append('Incluye foto', data.hasPhoto ? 'Sí' : 'No');
+            formData.append('Incluye audio', data.hasAudio ? 'Sí' : 'No');
 
-        // Using FormSubmit.co - completely free, no signup required
-        const formData = new FormData();
-        formData.append('_subject', `Nuevo Reporte: ${data.report_type}`);
-        formData.append('Tipo de evento', data.report_type);
-        formData.append('Ubicación', data.location);
-        formData.append('Descripción', data.description || 'Sin descripción');
-        formData.append('Coordenadas', data.coordinates);
-        formData.append('Fecha y hora', data.timestamp);
-        formData.append('Incluye foto', data.has_photo);
-        formData.append('Incluye audio', data.has_audio);
+            const response = await fetch(`https://formsubmit.co/${email}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
 
-        // FormSubmit.co endpoint - sends to david.cajiao@uao.edu.co
-        const response = await fetch('https://formsubmit.co/david.cajiao@uao.edu.co', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json'
-            }
+            return response.ok;
         });
 
-        return response.ok;
+        // Wait for all emails to be sent
+        const results = await Promise.all(promises);
+
+        // Return true if at least one email was sent successfully
+        return results.some(result => result === true);
     } catch (error) {
-        console.error('Error sending email:', error);
-        return false;
-    }
-};
-
-// Alternative: EmailJS implementation (requires setup)
-export const sendReportEmailWithEmailJS = async (data: EmailData): Promise<boolean> => {
-    try {
-        const templateParams = {
-            to_email: data.to_email,
-            report_type: data.report_type,
-            location: data.location,
-            description: data.description || 'Sin descripción',
-            coordinates: data.coordinates,
-            timestamp: data.timestamp,
-            has_photo: data.has_photo,
-            has_audio: data.has_audio
-        };
-
-        const response = await emailjs.send(
-            EMAILJS_CONFIG.serviceId,
-            EMAILJS_CONFIG.templateId,
-            templateParams,
-            EMAILJS_CONFIG.publicKey
-        );
-
-        return response.status === 200;
-    } catch (error) {
-        console.error('Error sending email with EmailJS:', error);
+        console.error('Error sending emails:', error);
         return false;
     }
 };

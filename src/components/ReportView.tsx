@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Camera, Mic, MapPin, Send, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { reportsDB, Report } from "@/lib/reportsDB";
+import { sendReportToMultipleEmails, REPORT_RECIPIENTS } from "@/lib/emailService";
 
 const ReportView = () => {
   const [selectedType, setSelectedType] = useState<string>("");
@@ -154,30 +155,19 @@ const ReportView = () => {
     setAudioPreview(null);
   };
 
-  // Send email automatically using FormSubmit.co
+  // Send email to multiple recipients using the email service
   const sendEmailReport = async (report: Report) => {
     try {
-      const formData = new FormData();
-      formData.append('_subject', `Nuevo Reporte: ${report.typeLabel}`);
-      formData.append('_captcha', 'false'); // Disable captcha for automatic sending
-      formData.append('Tipo de evento', report.typeLabel);
-      formData.append('Ubicación', report.location);
-      formData.append('Descripción', report.description || 'Sin descripción');
-      formData.append('Coordenadas', coordinates ? `${coordinates.lat}, ${coordinates.lon}` : 'No disponible');
-      formData.append('Fecha y hora', new Date(report.timestamp).toLocaleString('es-ES'));
-      formData.append('Incluye foto', photoFile ? 'Sí' : 'No');
-      formData.append('Incluye audio', audioFile ? 'Sí' : 'No');
-
-      // FormSubmit.co endpoint - sends to david.cajiao@uao.edu.co automatically
-      const response = await fetch('https://formsubmit.co/david.cajiao@uao.edu.co', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
+      return await sendReportToMultipleEmails({
+        recipients: REPORT_RECIPIENTS,
+        reportType: report.typeLabel,
+        location: report.location,
+        description: report.description,
+        coordinates: coordinates ? `${coordinates.lat}, ${coordinates.lon}` : 'No disponible',
+        timestamp: new Date(report.timestamp).toLocaleString('es-ES'),
+        hasPhoto: !!photoFile,
+        hasAudio: !!audioFile
       });
-
-      return response.ok;
     } catch (error) {
       console.error("Error sending email:", error);
       return false;
@@ -208,12 +198,13 @@ const ReportView = () => {
     // Update reports list
     setReports(reportsDB.getRecent());
 
-    // Send email automatically
+    // Send email to multiple recipients
+    const recipientCount = REPORT_RECIPIENTS.length;
     toast.promise(
       sendEmailReport(newReport),
       {
-        loading: 'Enviando reporte...',
-        success: 'Reporte enviado exitosamente por correo electrónico',
+        loading: `Enviando reporte a ${recipientCount} destinatario${recipientCount > 1 ? 's' : ''}...`,
+        success: `Reporte enviado exitosamente a ${recipientCount} destinatario${recipientCount > 1 ? 's' : ''}`,
         error: 'Error al enviar el reporte'
       }
     );
