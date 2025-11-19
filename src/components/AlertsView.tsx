@@ -120,7 +120,7 @@ const AlertsView = () => {
       const temp = hourly.temperature_2m[i];
 
       // Check for heavy rain alert
-      if (precipitation > 5 && precipProb > 70 && hoursFromNow <= 24) {
+      if (precipitation > 5 && precipProb > 70 && hoursFromNow <= 168) {
         const existing = alerts.find(a => a.id === "heavy-rain");
         if (!existing) {
           alerts.push({
@@ -136,7 +136,7 @@ const AlertsView = () => {
       }
 
       // Check for storm alert (weather code 95-99)
-      if (weatherCode >= 95 && hoursFromNow <= 24) {
+      if (weatherCode >= 95 && hoursFromNow <= 168) {
         const existing = alerts.find(a => a.id === "storm");
         if (!existing) {
           alerts.push({
@@ -162,7 +162,7 @@ const AlertsView = () => {
           }
         }
 
-        if (continuousRainHours >= 4 && totalRain > 15 && hoursFromNow <= 12) {
+        if (continuousRainHours >= 4 && totalRain > 15 && hoursFromNow <= 168) {
           const existing = alerts.find(a => a.id === "flooding-risk");
           if (!existing) {
             alerts.push({
@@ -179,7 +179,7 @@ const AlertsView = () => {
       }
 
       // Check for high precipitation probability
-      if (precipProb > 80 && precipitation > 2 && hoursFromNow <= 12) {
+      if (precipProb > 80 && precipitation > 2 && hoursFromNow <= 168) {
         const existing = alerts.find(a => a.id === "rain-warning");
         if (!existing && alerts.length < 3) {
           alerts.push({
@@ -195,7 +195,7 @@ const AlertsView = () => {
       }
 
       // Check for extreme temperatures
-      if (temp > 35 && hoursFromNow <= 12) {
+      if (temp > 35 && hoursFromNow <= 168) {
         const existing = alerts.find(a => a.id === "heat-alert");
         if (!existing && alerts.length < 3) {
           alerts.push({
