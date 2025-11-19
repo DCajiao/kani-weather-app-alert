@@ -57,21 +57,6 @@ const AlertsView = () => {
         <p className="text-sm opacity-90">3 alertas requieren tu atención</p>
       </div>
 
-      {/* Filter Options */}
-      <div className="px-6">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <Button variant="default" size="sm" className="rounded-full whitespace-nowrap">
-            Todas
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-full whitespace-nowrap">
-            Alta Prioridad
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-full whitespace-nowrap">
-            Mi Zona
-          </Button>
-        </div>
-      </div>
-
       {/* Alerts List */}
       <div className="px-6 space-y-4">
         {alerts.map((alert) => (
